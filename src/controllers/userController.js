@@ -1,19 +1,21 @@
 const { users } = require("../data/db");
 
 function getProfile(req, res) {
-  const user = users.find((u) => u.id === req.body.id || req.user.id);
+  //estaba mezclado con req.body.id, asi que no agarra bien el id para comparar
+  const user = users.find((u) => u.id === req.user.id);
 
   if (!user) {
     return res.status(404).json({ message: "Usuario no encontrado" });
   }
 
-  return res.json({ user });
+  //no hay que devolver el hash de la password
+  const { password, ...safeUser } = user;
+  return res.json({ user: safeUser });
 }
 
 function updateMe(req, res) {
-  //estaba mal la obtencion del id, ya que en el cuerpo el id es "id" no "userID"
-  const userId = req.body.id || req.user.id;
-  const user = users.find((u) => u.id === userId);
+  //dejaba que cualquiera mande un id en el body y edite el perfil de otro, saque el req.body.id
+  const user = users.find((u) => u.id === req.user.id);
 
   if (!user) {
     return res.status(404).json({ message: "Usuario no encontrado" });
@@ -22,7 +24,8 @@ function updateMe(req, res) {
   const { name } = req.body;
   user.name = name || user.name;
 
-  return res.status(200).json({ message: "Perfil actualizado", user });
+  const { password, ...safeUser } = user;
+  return res.status(200).json({ message: "Perfil actualizado", user: safeUser });
 }
 
 module.exports = {
